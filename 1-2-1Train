@@ -1,0 +1,27 @@
+import os
+import glob
+import xml.etree.ElementTree as ET
+
+# 라벨 폴더
+label_folder = "/content/DCC2024/Training/label"
+
+# 폴더 안 모든 XML 파일
+xml_files = glob.glob(os.path.join(label_folder, "*.xml"))
+
+# 라벨 종류 저장용 set (중복 제거)
+label_set = set()
+
+for xml_file in xml_files:
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+
+    for obj in root.findall("object"):
+        name = obj.find("name").text.strip()
+        label_set.add(name)
+
+# ✅ 결과 출력
+print("📊 object 라벨 종류")
+for label in sorted(label_set):
+    print("-", label)
+
+print("\n총 object 종류 개수:", len(label_set))
