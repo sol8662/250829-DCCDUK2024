@@ -1,0 +1,31 @@
+import os
+import glob
+import xml.etree.ElementTree as ET
+from collections import Counter
+
+# 라벨 폴더 경로
+label_folder = "/content/DCC2024/Validation(Test)/label"
+
+# 폴더 안 모든 XML 파일 가져오기
+xml_files = glob.glob(os.path.join(label_folder, "*.xml"))
+
+# 모든 객체 이름 저장 리스트
+all_labels = []
+
+for xml_file in xml_files:
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+
+    for obj in root.findall("object"):
+        name = obj.find("name").text.strip()
+        all_labels.append(name)
+
+# Counter 로 개수 세기
+label_counts = Counter(all_labels)
+
+# ✅ 결과 출력
+print("📊 라벨 통계")
+for label, count in label_counts.items():
+    print(f"{label}: {count} 개")
+
+print("\n총 라벨 종류 수:", len(label_counts))
