@@ -1,0 +1,47 @@
+import os
+import xml.etree.ElementTree as ET
+import cv2
+
+# 폴더 설정
+IMAGE_DIR = "/content/DCC2024/Training/image"
+LABEL_DIR = "/content/DCC2024/Training/label"
+OUTPUT_DIR = "/content/DCC2024/Training/bbox"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# 파일명 (확장자 제외)
+base_name = "bundle of ropes_002_00012"
+
+# 파일 경로
+xml_file = os.path.join(LABEL_DIR, base_name + ".xml")
+img_file = os.path.join(IMAGE_DIR, base_name + ".jpg")
+out_file = os.path.join(OUTPUT_DIR, base_name + "_bbox.jpg")
+
+# XML 파싱
+tree = ET.parse(xml_file)
+root = tree.getroot()
+
+# 이미지 불러오기
+img = cv2.imread(img_file)
+if img is None:
+    raise FileNotFoundError(f"이미지를 찾을 수 없음: {img_file}")
+
+# object 태그마다 바운딩박스 그리기
+for obj in root.findall("object"):
+    name = (obj.findtext("name") or "").strip()
+    bnd = obj.find("bndbox")
+    if bnd is None:
+        continue
+
+    xmin = int(float(bnd.findtext("xmin")))
+    ymin = int(float(bnd.findtext("ymin")))
+    xmax = int(float(bnd.findtext("xmax")))
+    ymax = int(float(bnd.findtext("ymax")))
+
+    # 바운딩박스 그리기
+    cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)
+    cv2.putText(img, name, (xmin, max(15, ymin - 5)),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+# 결과 저장
+cv2.imwrite(out_file, img)
+print(f"✅ 바운딩박스를 그린 이미지를 저장했습니다: {out_file}")
